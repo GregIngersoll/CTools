@@ -17,6 +17,8 @@ int main (int argc, char* argv[])
         printf ("\t<port>:\t\tPort for connect().\n\n");
         return 0;
     }
+    char* ipValue = argv[1];
+    char* portNumber = argv[2];
 
     int socketFileDescriptor = -1;
     int addrInfoStatus = -1;
@@ -24,9 +26,47 @@ int main (int argc, char* argv[])
     ssize_t numBytesReadFromServer;
 
     struct addrinfo hints;              // Hints to send to getaddrinfo
-    struct addrinfo *result;            // Result from getaddrinfo
-    struct addrinfo *sucessfulResult;   // Result pointer for successful connect.
+    struct addrinfo *allResults;            // Result from getaddrinfo
+    struct addrinfo *result;   // Result pointer for successful connect.
 
     memset(&hints, 0, sizeof(hints));
+
+    hints.ai_family = AF_UNSPEC;
+    hints.ai_socktype = SOCK_DGRAM;
+    hints.ai_flags = 0;
+    hints.ai_protocol = 0;
+
+    addrInfoStatus = getaddrinfo (ipValue, portNumber, &hints, &allResults);
+    if (addrinfoStatus != 0)
+    {
+        fprintf(stderr, "Error with geaddrinfo: %s\n", gai_strerror(addrInfoStatus));
+        exit(EXIT_FAILURE);
+    }
+
+    for (result = allResults; result != NULL; result = result->ai_next)
+    {
+        if (result == NULL)
+            break;
+
+        socketFileDescriptor = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+        if (socketFileDescriptor == -1)
+            continue;
+
+        if (connect(socketFileDescriptor, result->ai_addr, result->ai_addrlen) != -1)
+            break;
+
+        close(socketFileDescriptor);
+    }
+
+    freeaddrinfo (result);
+
+    if (result == NULL)
+    {
+        fprintf (stderr, "Could not connect to IPv4 Address %s and port %s\n", ipValue, portNumber);
+        exit (EXIT_FAILURE);
+    }
+
+    // Read from stan
+
     return 0;
 }
