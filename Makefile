@@ -1,5 +1,14 @@
 CC = gcc
 
-hello: hello.o
+BINARIES = hello
+SOURCES = hello.c
+OBJECTS = hello.o
 
-hello.o : hello.c
+all: hello
+
+hello: $(OBJECTS)
+
+$(OBJECTS):$(SOURCES)
+
+clean:
+	rm $(BINARIES) $(OBJECTS)
